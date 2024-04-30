@@ -1,4 +1,5 @@
-import tkinter 
+import tkinter,math,random
+from tkinter import Canvas, PhotoImage
 
 
 #ウィンドウの作成
@@ -25,6 +26,12 @@ point2y =pointy+circleWidth/2
 dx=5
 dy=5
 
+#半径
+radius = math.sqrt( 2*((circleWidth/2)**2))
+
+#スコア
+score = 0
+
 #パドル
 paddle_height=10
 paddle_width=75
@@ -36,10 +43,36 @@ rightPress = False #右
 leftPress = False #左
 paddleSpeed = 10
 
+#ブロック
+blockstartX = 20
+blockstrtY = 30
+blockRowCount = 10
+blockColumnCount = 15
+blockWidh = 45
+blockHeight = 10
+blockPadding = 10
+blockOffsetTop = 10
+blockOffsetLeft = 5
+arrBlock = []
+
+#リスト作成
+for r in range(blockRowCount):
+    tmpBlock = []
+    for c in range(blockColumnCount):
+        tmpBlock.append({"x1": 0, "y1": 0, "x2": 0, "y2": 0,"status":1})
+    arrBlock.append(tmpBlock)
+
 #キャンバスの作成
 root.minsize(width_size,height_size)
 canvas = tkinter.Canvas(bg="pink", width=width_size, height=height_size)
 canvas.place(x=-3, y=-3)
+
+#スコア
+def scorenum():
+    textScore =tkinter.Label(text="score:"+ str(score))
+    textScore.place(x=0,y=0)
+#GAMEオーバーの時のイメージ(dekitara)
+gameover_image = PhotoImage(file="2311654.png")
 
 #ball
 def ball():
@@ -58,7 +91,6 @@ def paddle():
     )
 
 #パドルボタン操作
-
 #右キー（押したとき）
 def rightKey(event):
     global rightPress
@@ -91,12 +123,60 @@ root.bind("<a>",leftKey)
 root.bind("<KeyRelease-Left>",leftKeyRelease)
 root.bind("<KeyRelease-a>",leftKeyRelease)
 
+#ブロック
+def drawBlock():
+       for r in range(blockRowCount):
+        for c in range(blockColumnCount):
+            leftXposition = blockstartX + (c * blockWidh) + (
+                c * blockOffsetLeft)
+            leftYposition = blockstrtY + (r * blockHeight) + (
+                r * blockOffsetTop)
+            rightXposition = leftXposition + blockWidh
+            rightYposition = leftYposition + blockHeight
+            arrBlock[r][c]["x1"] = leftXposition
+            arrBlock[r][c]["y1"] = leftYposition
+            arrBlock[r][c]["x2"] = rightXposition
+            arrBlock[r][c]["y2"] = rightYposition
+
+            if arrBlock[r][c]["status"] == 1:
+                canvas.create_rectangle(
+                    leftXposition,
+                    leftYposition,
+                    rightXposition,
+                    rightYposition,
+                    fill='#4286f4',
+                    outline="")
+                
+            #CLEARしたとき
+            # count_0 =arrBlock.count(0)
+            # if count_0 > 0:
+            #      canvas.delete("all")
+            #       # Canvas上に画像を描画する
+            #     canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
+            #      return
+
+
+#ブロックと当たったとき
+def detection(x,y):
+    global dx,dy,score
+    for r in range(blockRowCount):
+        for c in range(blockColumnCount):
+            b = arrBlock[r][c]
+            if ((x + radius + dx > b["x1"] and x - radius -dx < b["x2"]) \
+            and (y + radius + dy < b["y1"] or y - radius + dy < b["y2"]) \
+            and b["status"]==1
+            ):
+                print("ブロックにあたった")
+                dy = -dy
+                b["status"] = 0
+                score = score + 10
 
 def game_loop():
     global pointx , pointy
     global point2x , point2y
     global dx, dy
     global paddleX
+    global score
     
     #パドルの動き制御
     if rightPress:
@@ -113,23 +193,33 @@ def game_loop():
     centerY =pointy+(circleWidth/2)
 
     # 右反射
-    if point2x > width_size:
-        dx=-dx
+    if centerX + radius + dx > width_size:
+        dx = -dx
+
     # 左反射
-    if pointx<0:
-        dx=-dx
+    if centerX + dx < radius:
+        dx = -dx
+    
     # 上反射
-    if point2y>height_size:
-        dy=-dy
+    if centerY  + dy < radius:
+       dy = -dy
+
     # 下反射
-    if pointy<0:
-        #パドルの上に乗ったとき
-        if centerX + dx >paddleX and centerX + dx < paddleX :
-           dy=-dy
-         #そのまま下に行ってしまったとき
+    if centerY + radius + dy > height_size:
+ 
+        #ボールの移動先がパドルの場合は跳ね返す
+        if centerX + dx > paddleX and centerX + dx < paddleX + paddle_width:
+            dy = -dy
+        #ボールの移動先にパドルがない場合はゲームオーバー
         else:
-           canvas.delete("all")
-           
+            result = "score:"+ str(score)
+            canvas.delete("all")
+            # Canvas上に画像を描画する
+            canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームオーバー")
+            canvas.create_text(width_size/2,300,font=("",10), fill="black",text=result)
+            return
+    
+
            
 
     pointx= pointx+dx
@@ -137,6 +227,9 @@ def game_loop():
     canvas.delete("all")
     ball()
     paddle()
+    drawBlock()
+    scorenum()
+    detection(centerX, centerY)
     root.after(50,game_loop)
 
 
