@@ -44,28 +44,29 @@ leftPress = False #左
 paddleSpeed = 10
 
 # #ブロック
-# blockstartX = 20
-# blockstrtY = 30
-# blockRowCount = 10
-# blockColumnCount = 15
-# blockWidh = 45
-# blockHeight = 10
-# blockPadding = 10
-# blockOffsetTop = 10
-# blockOffsetLeft = 5
-# arrBlock = []
-
-#test用　ブロック
-blockstartX = 250
-blockstrtY = 150
-blockRowCount = 1
-blockColumnCount = 1
-blockWidh = 300
+blockstartX = 20
+blockstrtY = 30
+blockRowCount = 10
+blockColumnCount = 15
+blockWidh = 45
 blockHeight = 10
 blockPadding = 10
 blockOffsetTop = 10
 blockOffsetLeft = 5
 arrBlock = []
+
+#test用　ブロック
+# blockstartX = 250
+# blockstrtY = 150
+# blockRowCount = 1
+# blockColumnCount = 1
+# blockWidh = 300
+# blockHeight = 10
+# blockPadding = 10
+# blockOffsetTop = 10
+# blockOffsetLeft = 5
+# arrBlock = []
+isClear=False
 
 #リスト作成
 for r in range(blockRowCount):
@@ -85,7 +86,7 @@ def scorenum():
     textScore.place(x=0,y=0)
 
 #GAMEオーバーの時のイメージ(dekitara)
-gameover_image = PhotoImage(file="2311654.png")
+# ddddd
 
 #ball
 def ball():
@@ -164,12 +165,12 @@ def drawBlock():
 
 #ブロックと当たったとき
 def detection(x,y):
-    global dx,dy,score
+    global dx,dy,score,isClear
     for r in range(blockRowCount):
         for c in range(blockColumnCount):
             b = arrBlock[r][c]
             if ((x + radius + dx > b["x1"] and x - radius -dx < b["x2"]) \
-            and (y + radius + dy < b["y1"] or y - radius + dy < b["y2"]) \
+            and (y + radius + dy > b["y1"] and y - radius + dy < b["y2"]) \
             and b["status"]==1
             ):
                 # print("ブロックにあたった")
@@ -177,15 +178,12 @@ def detection(x,y):
                 b["status"] = 0
                 score = score + 10
 
-allBlock_destroy = all(block["status"] ==0 for row in arrBlock for block in row)
-
-def game_clear():
- #CLEARしたとき test
- global allBlock_destroy
-#  if allBlock_destroy:
- canvas.delete("all")
- canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
- return
+    isClear = all(block["status"] ==0 for row in arrBlock for block in row)
+    if isClear:
+        canvas.delete("all")
+        canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
+        print("全てのブロックが消えた")
+        return
 
 
 
@@ -196,6 +194,8 @@ def game_loop():
     global paddleX
     global score
     global allBlock_destroy
+
+   
     
     #パドルの動き制御
     if rightPress:
@@ -229,16 +229,16 @@ def game_loop():
         #ボールの移動先がパドルの場合は跳ね返す
         if centerX + dx > paddleX and centerX + dx < paddleX + paddle_width:
             dy = -dy
-        elif allBlock_destroy:
-            game_clear()
-            return
         #ボールの移動先にパドルがない場合はゲームオーバー
         else:
             result = "score:"+ str(score)
-            canvas.delete("all")
-            # Canvas上に画像を描画する
-            canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームオーバー")
-            canvas.create_text(width_size/2,300,font=("",10), fill="black",text=result)
+             # Canvas上に画像を描画する
+            if isClear==False:
+                canvas.delete("all")
+
+                canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームオーバー")
+                canvas.create_text(width_size/2,300,font=("",10), fill="black",text=result)
+                print("GAMEオーバーになった")
             return
         
 
@@ -253,6 +253,12 @@ def game_loop():
     
     scorenum()
     detection(centerX, centerY)
+    if isClear:
+        #  canvas.delete("all")
+        #  canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
+        #  print("全てのブロックが消えた")
+         return
+    
     root.after(20,game_loop)
 
 
