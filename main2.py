@@ -85,9 +85,6 @@ def scorenum():
     textScore =tkinter.Label(text="score:"+ str(score))
     textScore.place(x=0,y=0)
 
-#GAMEオーバーの時のイメージ(dekitara)
-# ddddd
-
 #ball
 def ball():
     ballx = random.randint(0,pointx)
@@ -179,11 +176,6 @@ def detection(x,y):
                 score = score + 10
 
     isClear = all(block["status"] ==0 for row in arrBlock for block in row)
-    if isClear:
-        canvas.delete("all")
-        canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
-        print("全てのブロックが消えた")
-        return
 
 
 
@@ -193,7 +185,7 @@ def game_loop():
     global dx, dy
     global paddleX
     global score
-    global allBlock_destroy
+    
 
    
     
@@ -236,6 +228,11 @@ def game_loop():
             if isClear==False:
                 canvas.delete("all")
 
+                # #画像挑戦
+                # gameover_img = tkinter.PhotoImage(file="2311654.png")
+                # loseImg= tkinter.Label(width=width_size,height= height_size,image=gameover_img)
+                # loseImg.pack()
+
                 canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームオーバー")
                 canvas.create_text(width_size/2,300,font=("",10), fill="black",text=result)
                 print("GAMEオーバーになった")
@@ -254,9 +251,9 @@ def game_loop():
     scorenum()
     detection(centerX, centerY)
     if isClear:
-        #  canvas.delete("all")
-        #  canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
-        #  print("全てのブロックが消えた")
+         canvas.delete("all")
+         canvas.create_text(width_size/2,height_size/2,font=("",25), fill="black",text="ゲームクリア")
+         print("全てのブロックが消えた")
          return
     
     root.after(20,game_loop)
